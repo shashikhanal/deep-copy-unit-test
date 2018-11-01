@@ -91,6 +91,33 @@ const copyObject = obj => {
     return Object.getPrototypeOf(obj);
   }
 
+  // tranvese to find Date object and clone them
+  for (item in newObject) {
+    const dateType = /(^\d{4}\-\d{2}\-\d{2})/;
+
+    if(dateType.test(newObject[item])) {
+      newObject[item] = new Date(newObject[item]);
+    }
+
+    if(typeof newObject[item] == "object") {
+      // next level nesting traversal
+      for(firstNestItem in newObject[item]) {
+        if(dateType.test(newObject[item][firstNestItem])) {
+          newObject[item][firstNestItem] = new Date(newObject[item][firstNestItem]);
+        }
+
+        if (typeof newObject[item][firstNestItem] == "object") {
+          // next level nesting traversal
+          for(secondNestItem in newObject[item][firstNestItem]) {
+            if(dateType.test(newObject[item][firstNestItem][secondNestItem])) {
+              newObject[item][firstNestItem][secondNestItem] = new Date(newObject[item][firstNestItem][secondNestItem]);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return newObject;
 };
 
@@ -145,10 +172,7 @@ describe('Object 1 Mutation test', function() {
 });
 
 describe('Object 2', function() {
-  console.log('object2 initial', object2);
   const myObject = copyObject(object2);
-  console.log('myObject', myObject);
-  console.log('object2 after', object2);
 
   it('should make a new copy of the object', function() {
     expect(object2 !== myObject).to.equal(true);
