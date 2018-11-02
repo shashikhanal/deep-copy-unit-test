@@ -71,7 +71,7 @@ const copyObject = obj => {
   function clone(item) {
       if (!item) { return item; }
 
-      var types = [ Number, String, Boolean ],
+      let types = [ Number, String, Boolean ],
           result;
 
       // normalizing primitives if someone did new String('aaa'), or new Number('444');
