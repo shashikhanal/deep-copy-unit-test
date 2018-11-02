@@ -68,6 +68,7 @@ const copyObject = obj => {
   // ONLY MAKE YOUR CHANGES HERE!!
   // ============================================================
   // ============================================================
+  const dateType = /(^\d{4}\-\d{2}\-\d{2})/; // regex to parse date object
   let newObject = JSON.parse(JSON.stringify(obj));
 
   // Append prototypes to the new object
@@ -86,36 +87,26 @@ const copyObject = obj => {
     });
   }
 
+  newObject = cloneDateObject(newObject);
+
   // Returns prototypes of an object
   function getPrototypes(obj) {
     return Object.getPrototypeOf(obj);
   }
 
-  // traverse to find Date object and clone them
-  for (item in newObject) {
-    const dateType = /(^\d{4}\-\d{2}\-\d{2})/;
-
-    if(dateType.test(newObject[item])) {
-      newObject[item] = new Date(newObject[item]);
-    }
-
-    if(typeof newObject[item] == "object") {
-      // next level nesting traversal
-      for(firstNestItem in newObject[item]) {
-        if(dateType.test(newObject[item][firstNestItem])) {
-          newObject[item][firstNestItem] = new Date(newObject[item][firstNestItem]);
-        }
-
-        if (typeof newObject[item][firstNestItem] == "object") {
-          // next level nesting traversal
-          for(secondNestItem in newObject[item][firstNestItem]) {
-            if(dateType.test(newObject[item][firstNestItem][secondNestItem])) {
-              newObject[item][firstNestItem][secondNestItem] = new Date(newObject[item][firstNestItem][secondNestItem]);
-            }
-          }
+  // clone only Date object found within an object
+  function cloneDateObject(newObject) {
+    for (item in newObject) {
+      if(typeof newObject[item] == "object") {
+        cloneDateObject(newObject[item]);
+      } else {
+        if(dateType.test(newObject[item])) {
+          newObject[item] = new Date(newObject[item]);
         }
       }
     }
+
+    return newObject;
   }
 
   return newObject;
