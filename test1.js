@@ -68,55 +68,54 @@ const copyObject = obj => {
   // ONLY MAKE YOUR CHANGES HERE!!
   // ============================================================
   // ============================================================
-  let newObject = JSON.parse(JSON.stringify(obj));
+  function clone(item) {
+      if (!item) { return item; }
 
-  // Append prototypes to the new object
-  if(Object.getPrototypeOf(obj) !== Object.prototype) {
-    const prototypeProperties = Object.getOwnPropertyNames(getPrototypes(obj));
-    const enumProps = Object.getOwnPropertyNames(obj);
+      var types = [ Number, String, Boolean ],
+          result;
 
-    enumProps.forEach(prop => {
-      if (newObject[prop] === undefined ) {
-        newObject[prop] = undefined;
-      }
-    });
-
-    prototypeProperties.forEach(prop => {
-      newObject.__proto__[prop] = obj[prop];
-    });
-  }
-
-  // Returns prototypes of an object
-  function getPrototypes(obj) {
-    return Object.getPrototypeOf(obj);
-  }
-
-  // traverse to find Date object and clone them
-  for (item in newObject) {
-    const dateType = /(^\d{4}\-\d{2}\-\d{2})/;
-
-    if(dateType.test(newObject[item])) {
-      newObject[item] = new Date(newObject[item]);
-    }
-
-    if(typeof newObject[item] == "object") {
-      // next level nesting traversal
-      for(firstNestItem in newObject[item]) {
-        if(dateType.test(newObject[item][firstNestItem])) {
-          newObject[item][firstNestItem] = new Date(newObject[item][firstNestItem]);
-        }
-
-        if (typeof newObject[item][firstNestItem] == "object") {
-          // next level nesting traversal
-          for(secondNestItem in newObject[item][firstNestItem]) {
-            if(dateType.test(newObject[item][firstNestItem][secondNestItem])) {
-              newObject[item][firstNestItem][secondNestItem] = new Date(newObject[item][firstNestItem][secondNestItem]);
-            }
+      // normalizing primitives if someone did new String('aaa'), or new Number('444');
+      types.forEach(function(type) {
+          if (item instanceof type) {
+              result = type( item );
           }
-        }
+      });
+
+      if (typeof result == "undefined") {
+          if (Object.prototype.toString.call( item ) === "[object Array]") {
+              result = [];
+              item.forEach(function(child, index, array) {
+                  result[index] = clone( child );
+              });
+          } else if (typeof item == "object") {
+              // testing that this is DOM
+              if (item.nodeType && typeof item.cloneNode == "function") {
+                  result = item.cloneNode( true );
+              } else if (!item.prototype) {
+                  if (item instanceof Date) {
+                      result = new Date(item);
+                  } else {
+                      result = {};
+                      for (var i in item) {
+                          result[i] = clone( item[i] );
+                      }
+                  }
+              } else {
+                  if (false && item.constructor) {
+                      result = new item.constructor();
+                  } else {
+                      result = item;
+                  }
+              }
+          } else {
+              result = item;
+          }
       }
-    }
+
+      return result;
   }
+
+  let newObject = clone(obj);
 
   return newObject;
 };
